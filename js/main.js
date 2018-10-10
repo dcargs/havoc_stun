@@ -39,6 +39,8 @@ if (room !== '') {
 socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
+  clientNumber++;
+
 });
 
 socket.on('full', function(room) {
@@ -49,11 +51,15 @@ socket.on('join', function (room){
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
   isChannelReady = true;
+
+
 });
 
 socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
+  clientNumber++;
+
 });
 
 socket.on('log', function(array) {
@@ -136,7 +142,8 @@ function maybeStart() {
   if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
     console.log('>>>>>> creating peer connection');
     createPeerConnection();
-    pc[0].addStream(localStream);
+    pc[clientNumber].addStream(localStream);
+
     isStarted = true;
     console.log('isInitiator', isInitiator);
     if (isInitiator) {
@@ -157,6 +164,8 @@ function createPeerConnection() {
     pc[clientNumber].onicecandidate = handleIceCandidate;
     pc[clientNumber].onaddstream = handleRemoteStreamAdded;
     pc[clientNumber].onremovestream = handleRemoteStreamRemoved;
+
+
     console.log('Created RTCPeerConnnection');
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -167,9 +176,9 @@ function createPeerConnection() {
 
 function handleIceCandidate(event) {
   console.log('icecandidate event: ', event);
-  if(typeof event.candidate.length !== 'undefined'){
-    console.log("event candiate length: "+event.candidate.length);
-  }
+  // if(typeof event.candidate.length !== 'undefined'){
+  //   console.log("event candiate length: "+event.candidate.length);
+  // }
 
   if (event.candidate) {
     sendMessage({
@@ -189,7 +198,14 @@ function handleCreateOfferError(event) {
 
 function doCall() {
   console.log('Sending offer to peer');
-  pc[clientNumber].createOffer(setLocalAndSendMessage, handleCreateOfferError);
+  if(clientNumber > 1){
+    for (var i = 0; i < pc.length; i++) {
+      pc[i].createOffer(setLocalAndSendMessage, handleCreateOfferError);
+    }
+  } else {
+    pc[clientNumber].createOffer(setLocalAndSendMessage, handleCreateOfferError);
+  }
+
 }
 
 function doAnswer() {
