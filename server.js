@@ -32,7 +32,7 @@ app.all('/', function(req, res, next) {
 
 // app.use(allowCrossDomain);//uses the above cors function
 
-app.use(express.static('./'))
+app.use(express.static('./public'))
 
 var options = {
   passphrase: 'express_https_example',
@@ -70,7 +70,9 @@ io.sockets.on('connection', function(socket) {
     console.log('Received request to create or join room ' + room);
 
     var clientsInRoom = io.sockets.adapter.rooms[room];
+    console.log("CLIENTSINROOM: "+JSON.stringify(clientsInRoom));
     var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
+    // var numClients = clientsInRoom.sockets.length;
     console.log('Room ' + room + ' now has ' + numClients + ' client(s)');
 
     if (numClients === 0) {
@@ -92,7 +94,7 @@ io.sockets.on('connection', function(socket) {
       socket.join(room);
       socket.emit('joined', room, socket.id);
       io.sockets.in(room).emit('ready');
-      
+
     } else if (numClients === 3) {
       console.log('Client ID ' + socket.id + ' joined room ' + room);
       io.sockets.in(room).emit('join', room);
