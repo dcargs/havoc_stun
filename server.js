@@ -70,15 +70,16 @@ io.sockets.on('connection', function(socket) {
     console.log('Received request to create or join room ' + room);
 
     var clientsInRoom = io.sockets.adapter.rooms[room];
-    console.log("CLIENTSINROOM: "+JSON.stringify(clientsInRoom));
     var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
-    // var numClients = clientsInRoom.sockets.length;
+    // var numClients = clientsInRoom.sockets.length; // has to be Object.keys
     console.log('Room ' + room + ' now has ' + numClients + ' client(s)');
 
     if (numClients === 0) {
       socket.join(room);
       console.log('Client ID ' + socket.id + ' created room ' + room);
       socket.emit('created', room, socket.id);
+      var clientsInRoom = io.sockets.adapter.rooms[room];
+      console.log("CLIENTSINROOM: "+JSON.stringify(clientsInRoom));
 
     } else if (numClients === 1) {
       console.log('Client ID ' + socket.id + ' joined room ' + room);
@@ -86,6 +87,7 @@ io.sockets.on('connection', function(socket) {
       socket.join(room);
       socket.emit('joined', room, socket.id);
       io.sockets.in(room).emit('ready');
+      console.log("CLIENTSINROOM: "+JSON.stringify(clientsInRoom));
 
     } else if (numClients === 2) {
       console.log('Client ID ' + socket.id + ' joined room ' + room);
@@ -93,14 +95,16 @@ io.sockets.on('connection', function(socket) {
       io.sockets.in(room).emit('join', room);
       socket.join(room);
       socket.emit('joined', room, socket.id);
-      io.sockets.in(room).emit('ready');
+      // io.sockets.in(room).emit('ready');
+      console.log("CLIENTSINROOM: "+JSON.stringify(clientsInRoom));
 
     } else if (numClients === 3) {
       console.log('Client ID ' + socket.id + ' joined room ' + room);
       io.sockets.in(room).emit('join', room);
       socket.join(room);
       socket.emit('joined', room, socket.id);
-      io.sockets.in(room).emit('ready');
+      // io.sockets.in(room).emit('ready');
+      console.log("CLIENTSINROOM: "+JSON.stringify(clientsInRoom));
     }   else { // max 4 clients
       socket.emit('full', room);
     }

@@ -39,8 +39,6 @@ if (room !== '') {
 socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
-  clientNumber++;
-
 });
 
 socket.on('full', function(room) {
@@ -51,15 +49,11 @@ socket.on('join', function (room){
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
   isChannelReady = true;
-
-
 });
 
 socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
-  clientNumber++;
-
 });
 
 socket.on('log', function(array) {
@@ -142,7 +136,11 @@ function maybeStart() {
   if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
     console.log('>>>>>> creating peer connection');
     createPeerConnection();
-    pc[clientNumber].addStream(localStream);
+    if(clientNumber == 0){
+      pc[clientNumber].addStream(localStream);
+    } else {
+      pc[clientNumber].addStream(remoteStream1);
+    }
 
     isStarted = true;
     console.log('isInitiator', isInitiator);
@@ -164,8 +162,6 @@ function createPeerConnection() {
     pc[clientNumber].onicecandidate = handleIceCandidate;
     pc[clientNumber].onaddstream = handleRemoteStreamAdded;
     pc[clientNumber].onremovestream = handleRemoteStreamRemoved;
-
-
     console.log('Created RTCPeerConnnection');
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -198,14 +194,7 @@ function handleCreateOfferError(event) {
 
 function doCall() {
   console.log('Sending offer to peer');
-  if(clientNumber > 1){
-    for (var i = 0; i < pc.length; i++) {
-      pc[i].createOffer(setLocalAndSendMessage, handleCreateOfferError);
-    }
-  } else {
-    pc[clientNumber].createOffer(setLocalAndSendMessage, handleCreateOfferError);
-  }
-
+  pc[clientNumber].createOffer(setLocalAndSendMessage, handleCreateOfferError);
 }
 
 function doAnswer() {
@@ -263,14 +252,17 @@ function handleRemoteStreamAdded(event) {
     // console.log("remoteVideo: "+remoteVideo.srcObject);
     remoteStream = event.stream;
     remoteVideo.srcObject = remoteStream;
+    console.log("1");
   } else if (!remoteVideo1.srcObject) {
     // console.log("remoteVideo1: "+remoteVideo1.srcObject);
     remoteStream1 = event.stream;
     remoteVideo1.srcObject = remoteStream1;
+    console.log(2);
   } else if (!remoteVideo2.srcObject) {
     // console.log("remoteVideo2: "+remoteVideo2.srcObject);
     remoteStream2 = event.stream;
     remoteVideo2.srcObject = remoteStream2;
+    console.log(3);
   }
 
 }
